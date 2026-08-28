@@ -1018,163 +1018,23 @@
         'success'
       );
     
-    
-      /*
-       * Get Apps Script return URL.
-       */
-    
-      const urlParams =
-        new URLSearchParams(
-          window.location.search
-        );
-    
-    
-      const returnUrl =
-        urlParams.get('returnUrl');
-    
-    
-      /*
-       * No return URL means the scanner
-       * was opened directly.
-       */
-    
-      if (!returnUrl) {
-    
-        console.warn(
-          'No returnUrl was supplied.'
-        );
-    
-    
-        stopScanner();
-    
-        return;
-    
-      }
-    
-    
-      /*
-       * Decode return URL.
-       */
-    
-      let decodedReturnUrl;
-    
-      try {
-    
-        decodedReturnUrl =
-          decodeURIComponent(returnUrl);
-    
-      }
-    
-      catch (error) {
-    
-        console.error(
-          'Invalid return URL:',
-          error
-        );
-    
-    
-        setStatus(
-          'Invalid return address.',
-          'error'
-        );
-    
-    
-        stopScanner();
-    
-        return;
-    
-      }
-    
-    
-      /*
-       * Build the Apps Script callback URL.
-       *
-       * Example:
-       *
-       * https://script.google.com/.../exec?page=raise_breakdown&assetNo=4307
-       */
-    
-      const separator =
-        decodedReturnUrl.indexOf('?') > -1 ? '&' : '?';
-
-      // index.html (GitHub) — fixed
-      const callbackUrl = decodedReturnUrl + '#assetNo=' + encodeURIComponent(scannedValue);
-    
-    
-      console.log(
-        'Returning to:',
-        callbackUrl
-      );
-    
-    
-      /*
-       * Stop camera first.
-       */
-    
       stopScanner();
-    
-    
-      /*
-       * Return to the Apps Script window.
-       *
-       * We use window.opener.location rather
-       * than postMessage because this is much
-       * more reliable with Apps Script's
-       * sandbox.
-       */
-    
-      try {
-    
-        if (
-          window.opener &&
-          !window.opener.closed
-        ) {
-    
-          window.opener.location.href =
-            callbackUrl;
-    
-    
-          /*
-           * Close scanner window.
-           */
-    
-          setTimeout(function() {
-    
-            window.close();
-    
-          }, 500);
-    
-    
-          return;
-    
+
+      if (window.opener && !window.opener.closed) {
+        try {
+          window.opener.postMessage(
+            { type: 'ASSET_QR_SCANNED', assetNo: scannedValue },
+            '*'
+          );
+        } catch (error) {
+          console.error('Could not notify opener:', error);
         }
     
+        setTimeout(function () {
+          window.close();
+        }, 500);
       }
-    
-      catch (error) {
-    
-        console.error(
-          'Could not return to opener:',
-          error
-        );
-    
-      }
-    
-    
-      /*
-       * Fallback:
-       *
-       * If opener is unavailable, navigate
-       * the scanner itself back to Apps Script.
-       */
-    
-      window.location.href =
-        callbackUrl;
-    
     }
-    
-    
-    
     /* ═══════════════════════════════════════════
        POPULATE CAMERA LIST
     ═══════════════════════════════════════════ */
