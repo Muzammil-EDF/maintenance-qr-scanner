@@ -1097,13 +1097,8 @@
       const separator =
         decodedReturnUrl.indexOf('?') > -1 ? '&' : '?';
 
-      const callbackUrl =
-        decodedReturnUrl +
-        separator +
-        'assetNo=' +
-        encodeURIComponent(
-          scannedValue
-        );
+      // index.html (GitHub) — fixed
+      const callbackUrl = decodedReturnUrl + '#assetNo=' + encodeURIComponent(scannedValue);
     
     
       console.log(
