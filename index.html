@@ -1,1 +1,1229 @@
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0">
+
+  <title>Asset QR Scanner</title>
+
+  <!-- QR SCANNER LIBRARY -->
+  <script
+    src="https://unpkg.com/html5-qrcode"
+    type="text/javascript">
+  </script>
+
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+    }
+
+
+    body {
+      margin: 0;
+      padding: 0;
+
+      font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+      background: #f3f5f4;
+
+      min-height: 100vh;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      padding: 20px;
+    }
+
+
+    .scanner-container {
+
+      width: 100%;
+      max-width: 520px;
+
+      background: white;
+
+      border-radius: 18px;
+
+      padding: 24px;
+
+      box-shadow:
+        0 8px 30px rgba(0, 0, 0, 0.12);
+
+    }
+
+
+    .header {
+      text-align: center;
+
+      margin-bottom: 20px;
+    }
+
+
+    .header h1 {
+      margin: 0 0 8px;
+
+      font-size: 24px;
+
+      color: #1f5c42;
+    }
+
+
+    .header p {
+
+      margin: 0;
+
+      color: #666;
+
+      font-size: 14px;
+
+    }
+
+
+    /* QR READER */
+
+    #qr-reader {
+
+      width: 100%;
+
+      overflow: hidden;
+
+      border-radius: 12px;
+
+      background: #111;
+
+    }
+
+
+    /* STATUS */
+
+    .status {
+
+      margin-top: 15px;
+
+      padding: 12px;
+
+      border-radius: 8px;
+
+      text-align: center;
+
+      font-size: 14px;
+
+      background: #f1f1f1;
+
+      color: #555;
+
+      min-height: 42px;
+
+      display: flex;
+
+      align-items: center;
+
+      justify-content: center;
+
+    }
+
+
+    .status.success {
+
+      background: #e8f5e9;
+
+      color: #2e7d32;
+
+      font-weight: 600;
+
+    }
+
+
+    .status.error {
+
+      background: #ffebee;
+
+      color: #c62828;
+
+    }
+
+
+    .status.warning {
+
+      background: #fff8e1;
+
+      color: #8d6e00;
+
+    }
+
+
+    /* RESULT */
+
+    .result-box {
+
+      margin-top: 15px;
+
+      padding: 15px;
+
+      border-radius: 10px;
+
+      background: #f7f9f8;
+
+      border: 1px solid #ddd;
+
+      display: none;
+
+    }
+
+
+    .result-box.visible {
+
+      display: block;
+
+    }
+
+
+    .result-label {
+
+      font-size: 12px;
+
+      color: #777;
+
+      margin-bottom: 5px;
+
+    }
+
+
+    .result-value {
+
+      font-size: 22px;
+
+      font-weight: bold;
+
+      color: #1f5c42;
+
+      word-break: break-word;
+
+      text-align: center;
+
+    }
+
+
+    /* BUTTONS */
+
+    .buttons {
+
+      display: flex;
+
+      gap: 10px;
+
+      margin-top: 15px;
+
+    }
+
+
+    button {
+
+      flex: 1;
+
+      border: none;
+
+      border-radius: 9px;
+
+      padding: 13px;
+
+      font-size: 15px;
+
+      font-weight: 600;
+
+      cursor: pointer;
+
+    }
+
+
+    .start-btn {
+
+      background: #1f5c42;
+
+      color: white;
+
+    }
+
+
+    .start-btn:hover {
+
+      background: #174832;
+
+    }
+
+
+    .stop-btn {
+
+      background: #d32f2f;
+
+      color: white;
+
+    }
+
+
+    .stop-btn:hover {
+
+      background: #b71c1c;
+
+    }
+
+
+    .switch-btn {
+
+      background: #e8ecea;
+
+      color: #333;
+
+    }
+
+
+    .switch-btn:hover {
+
+      background: #dce2df;
+
+    }
+
+
+    button:disabled {
+
+      opacity: 0.5;
+
+      cursor: not-allowed;
+
+    }
+
+
+    /* CAMERA SELECT */
+
+    .camera-section {
+
+      margin-top: 15px;
+
+    }
+
+
+    .camera-section label {
+
+      display: block;
+
+      font-size: 13px;
+
+      color: #555;
+
+      margin-bottom: 6px;
+
+    }
+
+
+    #cameraSelect {
+
+      width: 100%;
+
+      padding: 11px;
+
+      border: 1px solid #ccc;
+
+      border-radius: 8px;
+
+      background: white;
+
+      font-size: 14px;
+
+    }
+
+
+    /* INSTRUCTIONS */
+
+    .instructions {
+
+      margin-top: 20px;
+
+      padding: 15px;
+
+      background: #f7f9f8;
+
+      border-radius: 10px;
+
+      font-size: 13px;
+
+      color: #555;
+
+      line-height: 1.6;
+
+    }
+
+
+    .instructions strong {
+
+      color: #333;
+
+    }
+
+
+    @media (max-width: 600px) {
+
+      body {
+
+        padding: 10px;
+
+        align-items: flex-start;
+
+        padding-top: 20px;
+
+      }
+
+
+      .scanner-container {
+
+        padding: 16px;
+
+        border-radius: 14px;
+
+      }
+
+
+      .header h1 {
+
+        font-size: 21px;
+
+      }
+
+
+      .buttons {
+
+        flex-direction: column;
+
+      }
+
+    }
+
+  </style>
+
+</head>
+
+
+<body>
+
+
+  <div class="scanner-container">
+
+
+    <!-- HEADER -->
+
+    <div class="header">
+
+      <h1>Asset QR Scanner</h1>
+
+      <p>
+        Scan the QR code attached to the machine
+      </p>
+
+    </div>
+
+
+    <!-- QR SCANNER -->
+
+    <div id="qr-reader"></div>
+
+
+    <!-- STATUS -->
+
+    <div
+      id="status"
+      class="status">
+
+      Click "Start Camera" to begin scanning.
+
+    </div>
+
+
+    <!-- SCANNED RESULT -->
+
+    <div
+      id="resultBox"
+      class="result-box">
+
+      <div class="result-label">
+        Scanned QR Value
+      </div>
+
+      <div
+        id="resultValue"
+        class="result-value">
+      </div>
+
+    </div>
+
+
+    <!-- CAMERA SELECT -->
+
+    <div
+      id="cameraSection"
+      class="camera-section"
+      style="display:none;">
+
+      <label for="cameraSelect">
+        Camera
+      </label>
+
+      <select id="cameraSelect"></select>
+
+    </div>
+
+
+    <!-- BUTTONS -->
+
+    <div class="buttons">
+
+      <button
+        id="startBtn"
+        class="start-btn"
+        onclick="startScanner()">
+
+        Start Camera
+
+      </button>
+
+
+      <button
+        id="stopBtn"
+        class="stop-btn"
+        onclick="stopScanner()"
+        disabled>
+
+        Stop Camera
+
+      </button>
+
+
+      <button
+        id="switchBtn"
+        class="switch-btn"
+        onclick="switchCamera()"
+        disabled>
+
+        Switch Camera
+
+      </button>
+
+    </div>
+
+
+    <!-- INSTRUCTIONS -->
+
+    <div class="instructions">
+
+      <strong>How to scan:</strong>
+
+      <br>
+
+      1. Click <b>Start Camera</b>.
+
+      <br>
+
+      2. Allow camera permission when Chrome asks.
+
+      <br>
+
+      3. Point the camera at the machine QR code.
+
+      <br>
+
+      4. Keep the QR code inside the scanning area.
+
+      <br>
+
+      5. The scanned value will appear below.
+
+    </div>
+
+
+  </div>
+
+
+  <script>
+
+    /* ═══════════════════════════════════════════
+       GLOBAL VARIABLES
+    ═══════════════════════════════════════════ */
+
+    let html5QrCode = null;
+
+    let cameras = [];
+
+    let currentCameraIndex = 0;
+
+    let scannerRunning = false;
+
+    let lastScannedValue = null;
+
+
+    /* ═══════════════════════════════════════════
+       ELEMENTS
+    ═══════════════════════════════════════════ */
+
+    const statusElement =
+      document.getElementById('status');
+
+    const resultBox =
+      document.getElementById('resultBox');
+
+    const resultValue =
+      document.getElementById('resultValue');
+
+    const startBtn =
+      document.getElementById('startBtn');
+
+    const stopBtn =
+      document.getElementById('stopBtn');
+
+    const switchBtn =
+      document.getElementById('switchBtn');
+
+    const cameraSelect =
+      document.getElementById('cameraSelect');
+
+    const cameraSection =
+      document.getElementById('cameraSection');
+
+
+    /* ═══════════════════════════════════════════
+       STATUS FUNCTION
+    ═══════════════════════════════════════════ */
+
+    function setStatus(
+      message,
+      type = ''
+    ) {
+
+      statusElement.textContent =
+        message;
+
+      statusElement.className =
+        'status ' + type;
+
+    }
+
+
+    /* ═══════════════════════════════════════════
+       START SCANNER
+    ═══════════════════════════════════════════ */
+
+    async function startScanner(
+      selectedCameraId = null
+    ) {
+
+      if (scannerRunning) {
+
+        return;
+
+      }
+
+
+      setStatus(
+        'Requesting camera access...'
+      );
+
+
+      try {
+
+        /*
+         * Get available cameras.
+         *
+         * Calling getCameras() here causes
+         * the browser to request permission
+         * when necessary.
+         */
+
+        cameras =
+          await Html5Qrcode.getCameras();
+
+
+        if (!cameras || cameras.length === 0) {
+
+          setStatus(
+            'No camera was detected on this device.',
+            'error'
+          );
+
+          return;
+
+        }
+
+
+        /*
+         * Populate camera dropdown.
+         */
+
+        populateCameraList();
+
+
+        /*
+         * Determine camera to use.
+         */
+
+        let cameraId =
+          selectedCameraId;
+
+
+        if (!cameraId) {
+
+          /*
+           * Try to select rear camera.
+           */
+
+          const backCamera =
+            cameras.findIndex(
+              camera =>
+                /back|rear|environment/i
+                  .test(camera.label)
+            );
+
+
+          if (backCamera !== -1) {
+
+            currentCameraIndex =
+              backCamera;
+
+          }
+
+
+          cameraId =
+            cameras[currentCameraIndex].id;
+
+        }
+
+
+        /*
+         * Create scanner.
+         */
+
+        if (!html5QrCode) {
+
+          html5QrCode =
+            new Html5Qrcode(
+              'qr-reader'
+            );
+
+        }
+
+
+        /*
+         * Start camera.
+         */
+
+        await html5QrCode.start(
+
+          cameraId,
+
+          {
+
+            fps: 10,
+
+            qrbox: function(
+              viewfinderWidth,
+              viewfinderHeight
+            ) {
+
+              const minSize =
+                Math.min(
+                  viewfinderWidth,
+                  viewfinderHeight
+                );
+
+
+              /*
+               * QR scanning box = 70%
+               * of smallest screen dimension.
+               */
+
+              const size =
+                Math.floor(
+                  minSize * 0.70
+                );
+
+
+              return {
+
+                width: size,
+
+                height: size
+
+              };
+
+            },
+
+
+            aspectRatio: 1.0,
+
+
+            rememberLastUsedCamera: true
+
+          },
+
+
+          /*
+           * SUCCESS CALLBACK
+           */
+
+          function(decodedText) {
+
+            handleScan(decodedText);
+
+          },
+
+
+          /*
+           * SCAN FAILURE CALLBACK
+           *
+           * This runs continuously while
+           * looking for a QR code.
+           */
+
+          function(errorMessage) {
+
+            // Intentionally ignored.
+
+          }
+
+        );
+
+
+        scannerRunning = true;
+
+
+        updateButtons();
+
+
+        setStatus(
+          'Camera ready — point it at the QR code.'
+        );
+
+
+      }
+
+      catch (error) {
+
+        console.error(
+          'Camera error:',
+          error
+        );
+
+
+        handleCameraError(error);
+
+      }
+
+    }
+
+
+    /* ═══════════════════════════════════════════
+       HANDLE CAMERA ERROR
+    ═══════════════════════════════════════════ */
+
+    function handleCameraError(error) {
+
+      let message =
+        'Unable to access the camera.';
+
+
+      if (
+        error &&
+        error.name === 'NotAllowedError'
+      ) {
+
+        message =
+          'Camera permission was denied. ' +
+          'Please allow camera access in your browser settings.';
+
+      }
+
+
+      else if (
+        error &&
+        error.name === 'NotFoundError'
+      ) {
+
+        message =
+          'No camera was found on this device.';
+
+      }
+
+
+      else if (
+        error &&
+        error.name === 'NotReadableError'
+      ) {
+
+        message =
+          'The camera is already being used ' +
+          'by another application.';
+
+      }
+
+
+      else if (
+        error &&
+        error.name === 'SecurityError'
+      ) {
+
+        message =
+          'Camera access is blocked because ' +
+          'this page is not running over HTTPS.';
+
+      }
+
+
+      else if (
+        error &&
+        error.name === 'OverconstrainedError'
+      ) {
+
+        message =
+          'The selected camera could not be opened.';
+
+      }
+
+
+      setStatus(
+        message,
+        'error'
+      );
+
+
+      scannerRunning = false;
+
+      updateButtons();
+
+    }
+
+
+    /* ═══════════════════════════════════════════
+       STOP SCANNER
+    ═══════════════════════════════════════════ */
+
+    async function stopScanner() {
+
+      if (!html5QrCode) {
+
+        return;
+
+      }
+
+
+      if (!scannerRunning) {
+
+        return;
+
+      }
+
+
+      try {
+
+        await html5QrCode.stop();
+
+
+        scannerRunning = false;
+
+
+        setStatus(
+          'Camera stopped.'
+        );
+
+
+        updateButtons();
+
+      }
+
+      catch (error) {
+
+        console.error(
+          'Error stopping scanner:',
+          error
+        );
+
+        scannerRunning = false;
+
+        updateButtons();
+
+      }
+
+    }
+
+
+    /* ═══════════════════════════════════════════
+       HANDLE SUCCESSFUL SCAN
+    ═══════════════════════════════════════════ */
+
+    function handleScan(decodedText) {
+
+      /*
+       * Prevent processing the same QR repeatedly.
+       */
+
+      if (
+        lastScannedValue === decodedText
+      ) {
+
+        return;
+
+      }
+
+
+      lastScannedValue =
+        decodedText;
+
+
+      console.log(
+        'QR Code:',
+        decodedText
+      );
+
+
+      /*
+       * Display result.
+       */
+
+      resultValue.textContent =
+        decodedText;
+
+
+      resultBox.classList.add(
+        'visible'
+      );
+
+
+      setStatus(
+        '✓ QR code scanned successfully.',
+        'success'
+      );
+
+
+      /*
+       * Stop camera after successful scan.
+       *
+       * In Stage 2 this is where we will
+       * return the value to Apps Script.
+       */
+
+      stopScanner();
+
+    }
+
+
+    /* ═══════════════════════════════════════════
+       POPULATE CAMERA LIST
+    ═══════════════════════════════════════════ */
+
+    function populateCameraList() {
+
+      cameraSelect.innerHTML = '';
+
+
+      cameras.forEach(
+        function(camera, index) {
+
+          const option =
+            document.createElement('option');
+
+
+          option.value =
+            camera.id;
+
+
+          option.textContent =
+            camera.label ||
+            'Camera ' + (index + 1);
+
+
+          cameraSelect.appendChild(
+            option
+          );
+
+        }
+      );
+
+
+      /*
+       * Select current camera.
+       */
+
+      if (
+        cameras[currentCameraIndex]
+      ) {
+
+        cameraSelect.value =
+          cameras[currentCameraIndex].id;
+
+      }
+
+
+      /*
+       * Show dropdown if more than
+       * one camera exists.
+       */
+
+      if (cameras.length > 1) {
+
+        cameraSection.style.display =
+          'block';
+
+      }
+
+      else {
+
+        cameraSection.style.display =
+          'none';
+
+      }
+
+    }
+
+
+    /* ═══════════════════════════════════════════
+       CAMERA DROPDOWN CHANGE
+    ═══════════════════════════════════════════ */
+
+    cameraSelect.addEventListener(
+      'change',
+      async function() {
+
+        const selectedId =
+          this.value;
+
+
+        const index =
+          cameras.findIndex(
+            camera =>
+              camera.id === selectedId
+          );
+
+
+        if (index !== -1) {
+
+          currentCameraIndex =
+            index;
+
+        }
+
+
+        if (scannerRunning) {
+
+          await stopScanner();
+
+          await startScanner(
+            selectedId
+          );
+
+        }
+
+      }
+    );
+
+
+    /* ═══════════════════════════════════════════
+       SWITCH CAMERA
+    ═══════════════════════════════════════════ */
+
+    async function switchCamera() {
+
+      if (cameras.length < 2) {
+
+        setStatus(
+          'Only one camera is available.',
+          'warning'
+        );
+
+        return;
+
+      }
+
+
+      /*
+       * Move to next camera.
+       */
+
+      currentCameraIndex =
+        (currentCameraIndex + 1)
+        % cameras.length;
+
+
+      const nextCamera =
+        cameras[currentCameraIndex];
+
+
+      if (scannerRunning) {
+
+        await stopScanner();
+
+      }
+
+
+      await startScanner(
+        nextCamera.id
+      );
+
+    }
+
+
+    /* ═══════════════════════════════════════════
+       UPDATE BUTTONS
+    ═══════════════════════════════════════════ */
+
+    function updateButtons() {
+
+      startBtn.disabled =
+        scannerRunning;
+
+
+      stopBtn.disabled =
+        !scannerRunning;
+
+
+      switchBtn.disabled =
+        !scannerRunning ||
+        cameras.length < 2;
+
+    }
+
+
+    /* ═══════════════════════════════════════════
+       RESET RESULT
+    ═══════════════════════════════════════════ */
+
+    function resetResult() {
+
+      resultValue.textContent = '';
+
+      resultBox.classList.remove(
+        'visible'
+      );
+
+      lastScannedValue = null;
+
+    }
+
+
+    /* ═══════════════════════════════════════════
+       INITIAL STATE
+    ═══════════════════════════════════════════ */
+
+    updateButtons();
+
+  </script>
+
+
+</body>
+
+</html>
