@@ -1091,12 +1091,16 @@
        *
        * Example:
        *
-       * https://script.google.com/.../exec#assetNo=4307
+       * https://script.google.com/.../exec?page=raise_breakdown&assetNo=4307
        */
     
+      const separator =
+        decodedReturnUrl.indexOf('?') > -1 ? '&' : '?';
+
       const callbackUrl =
         decodedReturnUrl +
-        '#assetNo=' +
+        separator +
+        'assetNo=' +
         encodeURIComponent(
           scannedValue
         );
