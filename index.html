@@ -965,63 +965,217 @@
     /* ═══════════════════════════════════════════
        HANDLE SUCCESSFUL SCAN
     ═══════════════════════════════════════════ */
-
+    
     function handleScan(decodedText) {
-
-      /*
-       * Prevent processing the same QR repeatedly.
-       */
-
-      if (
-        lastScannedValue === decodedText
-      ) {
-
+    
+      if (!decodedText) {
+    
         return;
-
+    
       }
-
-
+    
+    
+      /*
+       * Prevent duplicate scans.
+       */
+    
+      if (lastScannedValue === decodedText) {
+    
+        return;
+    
+      }
+    
+    
       lastScannedValue =
         decodedText;
-
-
+    
+    
+      const scannedValue =
+        decodedText.trim();
+    
+    
       console.log(
         'QR Code:',
-        decodedText
+        scannedValue
       );
-
-
+    
+    
       /*
        * Display result.
        */
-
+    
       resultValue.textContent =
-        decodedText;
-
-
+        scannedValue;
+    
+    
       resultBox.classList.add(
         'visible'
       );
-
-
+    
+    
       setStatus(
         '✓ QR code scanned successfully.',
         'success'
       );
-
-
+    
+    
       /*
-       * Stop camera after successful scan.
-       *
-       * In Stage 2 this is where we will
-       * return the value to Apps Script.
+       * Get Apps Script return URL.
        */
-
+    
+      const urlParams =
+        new URLSearchParams(
+          window.location.search
+        );
+    
+    
+      const returnUrl =
+        urlParams.get('returnUrl');
+    
+    
+      /*
+       * No return URL means the scanner
+       * was opened directly.
+       */
+    
+      if (!returnUrl) {
+    
+        console.warn(
+          'No returnUrl was supplied.'
+        );
+    
+    
+        stopScanner();
+    
+        return;
+    
+      }
+    
+    
+      /*
+       * Decode return URL.
+       */
+    
+      let decodedReturnUrl;
+    
+      try {
+    
+        decodedReturnUrl =
+          decodeURIComponent(returnUrl);
+    
+      }
+    
+      catch (error) {
+    
+        console.error(
+          'Invalid return URL:',
+          error
+        );
+    
+    
+        setStatus(
+          'Invalid return address.',
+          'error'
+        );
+    
+    
+        stopScanner();
+    
+        return;
+    
+      }
+    
+    
+      /*
+       * Build the Apps Script callback URL.
+       *
+       * Example:
+       *
+       * https://script.google.com/.../exec#assetNo=4307
+       */
+    
+      const callbackUrl =
+        decodedReturnUrl +
+        '#assetNo=' +
+        encodeURIComponent(
+          scannedValue
+        );
+    
+    
+      console.log(
+        'Returning to:',
+        callbackUrl
+      );
+    
+    
+      /*
+       * Stop camera first.
+       */
+    
       stopScanner();
-
+    
+    
+      /*
+       * Return to the Apps Script window.
+       *
+       * We use window.opener.location rather
+       * than postMessage because this is much
+       * more reliable with Apps Script's
+       * sandbox.
+       */
+    
+      try {
+    
+        if (
+          window.opener &&
+          !window.opener.closed
+        ) {
+    
+          window.opener.location.href =
+            callbackUrl;
+    
+    
+          /*
+           * Close scanner window.
+           */
+    
+          setTimeout(function() {
+    
+            window.close();
+    
+          }, 500);
+    
+    
+          return;
+    
+        }
+    
+      }
+    
+      catch (error) {
+    
+        console.error(
+          'Could not return to opener:',
+          error
+        );
+    
+      }
+    
+    
+      /*
+       * Fallback:
+       *
+       * If opener is unavailable, navigate
+       * the scanner itself back to Apps Script.
+       */
+    
+      window.location.href =
+        callbackUrl;
+    
     }
-
-
+    
+    
+    
     /* ═══════════════════════════════════════════
        POPULATE CAMERA LIST
     ═══════════════════════════════════════════ */
